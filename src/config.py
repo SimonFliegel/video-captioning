@@ -1,0 +1,11 @@
+train_path = "data/train"
+test_path = "data/test"
+save_model_path = "models/model"
+latent_dim = 512
+num_encoder_tokens = 4096
+num_decoder_tokens = 1500
+time_steps_encoder = 80 # frames
+max_probability = -1
+validation_split = 0.15
+max_length = 10
+search_type = "greedy"
