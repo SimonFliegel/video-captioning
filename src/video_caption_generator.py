@@ -19,12 +19,14 @@ class VideoCaptionGenerator:
         self.time_steps_encoder = config.time_steps_encoder
         self.max_probability = config.max_probability
         
-        self.tokenizer, self.inf_encoder_model, self.inf_decoder_model = model.inference_model()
+        # self.tokenizer, self.inf_encoder_model, self.inf_decoder_model = model.inference_model()
         self.inf_decoder_model = None
         self.save_model_path = config.save_model_path
         self.test_path = config.test_path
         self.search_type = config.search_type
         self.num = 0
+        
+        self.video_processor = video_processor.VideoProcessor(is_training=False)
         
     def greedy_search(self, loaded_array):
         pass
@@ -32,34 +34,43 @@ class VideoCaptionGenerator:
     def beam_search(self, loaded_array):
         pass
     
-    def test(self):
-        test_files = os.listdir(os.path.join(self.test_path, 'videos'))
-        for file in test_files:
-            start = time.time()
-            video_path = os.path.join(self.test_path, 'videos', file)
-            features = video_processor.extract_features(video_path)
-            caption = self.greedy_search(features)
-            print(f'{file} - {caption}')
-            end = time.time()
-            print(f'Time taken: {end - start}')
-            self.num += 1
-            if self.num == 10:
-                break
-        
-    def generate_caption(self, video_path):
-        frames = self._extract_frames(video_path)
-        frames = self._preprocess_frames(frames)
-        caption = self._generate_caption(frames)
-        return caption
-
-    def _extract_frames(self, video_path):
-        # Extract frames from video
-        return frames
-
-    def _preprocess_frames(self, frames):
-        # Preprocess frames
-        return frames
-
-    def _generate_caption(self, frames):
-        # Generate caption
-        return caption
+    # def test(self):
+    #     test_files = os.listdir(os.path.join(self.test_path, 'videos'))
+    #     for file in test_files:
+    #         start = time.time()
+    #         video_path = os.path.join(self.test_path, 'videos', file)
+    #         features = video_processor.extract_features(video_path)
+    #         caption = self.greedy_search(features)
+    #         print(f'{file} - {caption}')
+    #         end = time.time()
+    #         print(f'Time taken: {end - start}')
+    #         self.num += 1
+    #         if self.num == 10:
+    #             break
+    #     
+    # def generate_caption(self, video_path):
+    #     frames = self._extract_frames(video_path)
+    #     frames = self._preprocess_frames(frames)
+    #     caption = self._generate_caption(frames)
+    #     return caption
+    # 
+    # def _extract_frames(self, video_path):
+    #     # Extract frames from video
+    #     return frames
+    # 
+    # def _preprocess_frames(self, frames):
+    #     # Preprocess frames
+    #     return frames
+    # 
+    # def _generate_caption(self, frames):
+    #     # Generate caption
+    #     return caption
+    
+    def main(self):
+        features = self.video_processor.extract_features('../data/train/videos/0bSz70pYAP0_5_15.avi')
+        print(features)
+    
+    
+if __name__ == '__main__':
+    v = VideoCaptionGenerator(config)
+    v.main()

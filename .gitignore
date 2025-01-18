@@ -2,9 +2,10 @@
 
 .idea/
 
-.pytest_cache/
-.pycache/
+src/__pycache__/
 
-data/
+data/test/videos/
+data/train/videos/
+data/train/features/
 
 .DS_Store
