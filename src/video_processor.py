@@ -47,13 +47,14 @@ class VideoProcessor:
         if not os.path.isdir(feat_dir):
             os.makedirs(feat_dir)
 
-        outfile = os.path.join(feat_dir, os.path.basename(path_to_video) + '.npy')
+        base_name = os.path.splitext(os.path.basename(path_to_video))[0]
+        outfile = os.path.join(feat_dir, base_name + '.npy')
         np.save(outfile, features)
         
     def load_features(self, path_to_video):
         feat_dir = os.path.join(self.data_path, 'features')
-        infile = os.path.join(feat_dir, os.path.basename(path_to_video) + '.npy')
-        return np.load(infile)
+        infile = os.path.join(feat_dir, os.path.basename(path_to_video))
+        return np.load(infile, allow_pickle=True)
     
     def create_features(self):
         video_dir = os.path.join(self.data_path, 'videos')
@@ -61,11 +62,8 @@ class VideoProcessor:
             video_path = os.path.join(video_dir, video)
             features = self.extract_features(video_path)
             self.save_features(video_path, features)
-    
-def main():
+            
+if __name__ == '__main__':
     video_processor = VideoProcessor()
     video_processor.create_features()
-    
-if __name__ == '__main__':
-    main()
         

@@ -1,6 +1,6 @@
 train_path = "../data/train"
 test_path = "../data/test"
-save_model_path = "../models/model"
+save_model_path = "../models/model_default"
 batch_size = 320
 learning_rate = 0.0007
 epochs = 150

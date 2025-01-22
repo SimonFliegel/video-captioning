@@ -8,4 +8,6 @@ data/test/videos/
 data/train/videos/
 data/train/features/
 
+models/
+
 .DS_Store
