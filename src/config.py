@@ -13,4 +13,4 @@ max_probability = -1
 validation_split = 0.15
 min_length = 6 # words
 max_length = 10 # words
-search_type = "greedy"
+search_type = "beam_search"

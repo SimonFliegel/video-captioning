@@ -5,8 +5,10 @@
 src/__pycache__/
 
 data/test/videos/
+data/test/features/
 data/train/videos/
 data/train/features/
+data/realtime/
 
 models/
 

@@ -133,7 +133,7 @@ class VideoCaptioningTrainer:
 
         video_ids, video_sequences = extract_video_data(training_data)
         train_sequences = preprocess_sequences(video_sequences)
-        for _ in range(2): # self.epochs
+        for _ in range(self.epochs): # self.epochs
             yield from generate_batches(video_ids, train_sequences) # generator
     
     def _create_vocab_from_training_data(self, training_data):
@@ -174,15 +174,20 @@ class VideoCaptioningTrainer:
         reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=5, verbose=0, mode='auto')
         
         self.combined_model.compile(metrics=['accuracy'], optimizer=opt, loss='categorical_crossentropy')
-        self.combined_model.fit(train, validation_data=valid, validation_steps=validation_steps, epochs=1, steps_per_epoch=steps_per_epoch, callbacks=[early_stopping, reduce_lr])
+        self.combined_model.fit(train, validation_data=valid, validation_steps=validation_steps, epochs=self.epochs, steps_per_epoch=steps_per_epoch, callbacks=[early_stopping, reduce_lr])
         
         self._save_models()
     
     
 if __name__ == '__main__':
-    trainer = VideoCaptioningTrainer(config)
-    # decoder.setup()
-    trainer.train()
+    if not os.path.exists(config.save_model_path):
+        trainer = VideoCaptioningTrainer(config)
+        # decoder.setup()
+        trainer.train()
+    else:
+        print("Model already exists. Delete the model folder if you want to retrain. ")
+    
+    
     
 
     
