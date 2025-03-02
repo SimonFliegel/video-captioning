@@ -10,6 +10,4 @@ data/train/videos/
 data/train/features/
 data/realtime/
 
-models/
-
 .DS_Store

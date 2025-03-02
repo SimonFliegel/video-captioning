@@ -7,7 +7,7 @@ import cv2
 import time
 
 import numpy as np
-import video_processor
+from preprocess import VideoProcessor
 
 import config
 import model
@@ -31,7 +31,7 @@ class VideoCaptionInference:
         self.test_path = conf.test_path
         self.search_type = conf.search_type
         
-        self.video_processor = video_processor.VideoProcessor(is_training=False)
+        self.video_processor = VideoProcessor(is_training=False)
         
     def _select_testing_data(self):
         train_videos_path = os.path.join(self.train_path, 'videos')
@@ -182,15 +182,14 @@ class VideoCaptionInference:
                 self.decode_sequence = []
                 self.max_probability = -1
 
-    def predict_realtime(self, video_path):
+    def predict_realtime(self, video_path, search_type='greedy'):
         features = self.video_processor.extract_features(video_path)
-        if self.search_type == 'greedy':
+        if search_type == 'greedy':
             caption = self._greedy_search(features.reshape(-1, self.time_steps_encoder, self.num_encoder_tokens))
         else:
             decoded_sentence = self._decode_sequence_to_beam_search(features.reshape(-1, self.time_steps_encoder, self.num_encoder_tokens))
             decoded_sentence = self._decoded_sentence_tuning(decoded_sentence)
             caption = ' '.join(decoded_sentence)
-        # caption = '[' + ' '.join(caption.split()[:-1]) + ']' # remove <eos> token
         print(caption)
 
         original = cv2.VideoCapture(video_path)
@@ -201,10 +200,12 @@ class VideoCaptionInference:
             if ret_original:
                 image_show = cv2.resize(frame_original, (480, 300))
                 cv2.imshow('Original', image_show)
+                cv2.moveWindow('Original', 0, 0)
             if ret_captioned:
                 image_show = cv2.resize(frame_captioned, (480, 300))
                 cv2.putText(image_show, caption, (100, 270), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2, cv2.LINE_4)
                 cv2.imshow('Captioned', image_show)
+                cv2.moveWindow('Captioned', 500, 0)
             else:
                 break
 
@@ -224,3 +225,4 @@ class VideoCaptionInference:
 if __name__ == '__main__':
     vc = VideoCaptionInference(config)
     vc.test()
+    # vc.predict_realtime('../data/realtime/video.mp4')

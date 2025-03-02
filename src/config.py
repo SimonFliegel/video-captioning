@@ -1,5 +1,6 @@
 train_path = "../data/train"
 test_path = "../data/test"
+realtime_path = "../data/realtime"
 save_model_path = "../models/model_default"
 batch_size = 320
 learning_rate = 0.0007
