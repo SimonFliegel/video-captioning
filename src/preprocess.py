@@ -3,9 +3,13 @@ import cv2
 import numpy as np
 from tensorflow.keras import Model
 from tensorflow.keras.applications import VGG16
+
 import config
 
 class VideoProcessor:
+    """
+    Extract features from videos using VGG16 model and save them to a file.
+    """
     def __init__(self, is_training=True):
         self.frame_count = 80
         self.data_path = config.train_path if is_training else config.test_path
@@ -29,6 +33,11 @@ class VideoProcessor:
         return frames
     
     def extract_features(self, path_to_video):
+        """
+        Extract features from video using VGG16 model
+        :param path_to_video: the path to the video
+        :return: the feature vector
+        """
         frames = self._get_frames(path_to_video)
         if len(frames) < self.frame_count:
             samples = np.arange(len(frames))
@@ -43,6 +52,11 @@ class VideoProcessor:
         return image_features
     
     def save_features(self, path_to_video, features):
+        """
+        Save the features to a file
+        :param path_to_video: the path to the video needed for the filename of the feature file
+        :param features: the features to save
+        """
         feat_dir = os.path.join(self.data_path, 'features')
         if not os.path.isdir(feat_dir):
             os.makedirs(feat_dir)
@@ -52,11 +66,21 @@ class VideoProcessor:
         np.save(outfile, features)
         
     def load_features(self, path_to_video):
+        """
+        Load the features from a file
+        :param path_to_video: the path to the video needed for the filename of the feature file
+        :return: the feature vector
+        """
         feat_dir = os.path.join(self.data_path, 'features')
         infile = os.path.join(feat_dir, os.path.basename(path_to_video))
         return np.load(infile, allow_pickle=True)
     
     def create_features(self):
+        """
+        Create features for all videos in the data path.
+        This method should be called only once to create the features and will take some time to run depending on the number of videos.
+        All features are saved in the features directory.
+        """
         video_dir = os.path.join(self.data_path, 'videos')
         for video in os.listdir(video_dir):
             video_path = os.path.join(video_dir, video)

@@ -15,11 +15,10 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import ReduceLROnPlateau
 
 import config
-import video_processor
+from preprocess import VideoProcessor
 from model import create_models
 
 class VideoCaptioningTrainer:
-    
     def __init__(self, conf):
         self.train_path = conf.train_path
         self.test_path = conf.test_path
@@ -36,7 +35,7 @@ class VideoCaptioningTrainer:
         self.time_steps_decoder = conf.time_steps_decoder
         self.x_data = {}
         
-        self.processor = video_processor.VideoProcessor(is_training=True)
+        self.processor = VideoProcessor(is_training=True)
         
         # processed data
         self.tokenizer = None
@@ -88,7 +87,6 @@ class VideoCaptioningTrainer:
 
     def _load_dataset(self, training_data):
         def extract_video_data(training_data):
-            """Extract video IDs and captions from training data."""
             video_ids, video_sequences = [], []
             for cap in training_data:
                 video_sequences.append(cap[0])  # Captions
@@ -96,14 +94,12 @@ class VideoCaptioningTrainer:
             return video_ids, video_sequences
 
         def preprocess_sequences(sequences):
-            """Tokenize and pad sequences."""
             tokenized = self.tokenizer.texts_to_sequences(sequences)
             return pad_sequences(
                 tokenized, padding='post', truncating='post', maxlen=self.max_length
             )
     
         def generate_batches(video_ids, train_sequences):
-            """Yield batches of encoder and decoder data."""
             encoder_input_data, decoder_input_data, decoder_target_data = [], [], []
             batch_count = 0
     
@@ -122,7 +118,6 @@ class VideoCaptioningTrainer:
                     batch_count = 0
     
         def finalize_batch(encoder_inputs, decoder_inputs, decoder_targets):
-            """Convert collected batch data to numpy arrays."""
             return (
                 [
                     np.array(encoder_inputs, dtype=np.float32),
@@ -157,9 +152,17 @@ class VideoCaptioningTrainer:
         return training_data, validation_data
         
     def setup(self):
+        """
+        Creates a json file with all the annotations necessary for training.
+        """
         self._create_json_from_annotations()
         
     def train(self):
+        """
+        Trains the model and saves it to the configured path.
+
+        Artifacts saved: encoder, decoder, tokenizer
+        """
         self.combined_model, self.encoder_model, self.decoder_model = create_models()
         training_data, validation_data = self._preprocess()
         
@@ -182,7 +185,7 @@ class VideoCaptioningTrainer:
 if __name__ == '__main__':
     if not os.path.exists(config.save_model_path):
         trainer = VideoCaptioningTrainer(config)
-        # decoder.setup()
+        trainer.setup()
         trainer.train()
     else:
         print("Model already exists. Delete the model folder if you want to retrain. ")

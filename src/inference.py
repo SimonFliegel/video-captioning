@@ -5,14 +5,16 @@ import shutil
 import random
 import cv2
 import time
-
 import numpy as np
-from preprocess import VideoProcessor
 
+from preprocess import VideoProcessor
 import config
 import model
 
 class VideoCaptionInference:
+    """
+    Use inference models to predict captions for videos.
+    """
     def __init__(self, conf):
         self.test_size = 10
         self.test_path = conf.test_path
@@ -88,7 +90,17 @@ class VideoCaptionInference:
         self._beam_search(target_sequence, states_value, [], [], 0)
         return self.decode_sequence
     
-    def _beam_search(self, target_sequence, state_value, prob, path, lens):
+    def _beam_search(self, target_sequence, state_value, prob, path, length):
+        """
+        Beam search algorithm to find the best caption.
+        A beam width of 2 is used.
+        The result is saved in the self.decode_sequence because of recursion.
+        :param target_sequence: The current sequence of
+        :param state_value: The current state of the decoder's LSTM
+        :param prob: The list of probabilities of the current caption used to calculate the overall probability of the caption.
+        :param path: The current path in the search tree. It represents the current generated caption.
+        :param length: The length of the current caption
+        """
         max_len = self.max_length + 2 # <bos> and <eos>
         beam_width = 2 # nodes to keep
         output_tokens, h, c = self.inf_decoder_model.predict([target_sequence] + state_value)
@@ -102,7 +114,7 @@ class VideoCaptionInference:
             else:
                 sampled_char = {values: keys for keys, values in self.tokenizer.word_index.items()}.get(sampled_token_index[i], '')
 
-            if sampled_char != 'eos' and lens <= max_len:
+            if sampled_char != 'eos' and length <= max_len:
                 p = output_tokens[sampled_token_index[i]]
                 if sampled_char == '':
                     p = 1
@@ -112,7 +124,7 @@ class VideoCaptionInference:
                 path_new.append(sampled_char)
                 target_sequence = np.zeros((1, 1, self.num_decoder_tokens))
                 target_sequence[0, 0, sampled_token_index[i]] = 1
-                self._beam_search(target_sequence, states_value, prob_new, path_new, lens + 1)
+                self._beam_search(target_sequence, states_value, prob_new, path_new, length + 1)
             else:
                 p = output_tokens[sampled_token_index[i]]
                 prob_new = list(prob)
@@ -123,11 +135,18 @@ class VideoCaptionInference:
                     self.max_probability = p
 
     def _index_to_word(self):
-        # inverts word tokenizer
+        """
+        Inverts word tokenizer
+        """
         index_to_word = {value: key for key, value in self.tokenizer.word_index.items()}
         return index_to_word
                     
     def _decoded_sentence_tuning(self, decoded_sentence):
+        """
+        Decode the sentence and remove duplicate words.
+        :param decoded_sentence:
+        :return: the decoded sentence:
+        """
         decode_str = []
         filter_string = ['bos', 'eos']
         uni_gram = {}
@@ -161,6 +180,10 @@ class VideoCaptionInference:
             return x_test, x_test_filename
         
     def test(self):
+        """
+        Test the model on the testing data.
+        The results will be saved to a text file.
+        """
         self._select_testing_data()
         x_test, x_test_filename = self._get_test_data()
         
@@ -183,6 +206,11 @@ class VideoCaptionInference:
                 self.max_probability = -1
 
     def predict_realtime(self, video_path, search_type='greedy'):
+        """
+        Predict captions for videos in real-time and display the video with the caption.
+        :param video_path: the path to the video
+        :param search_type: the search type to use: 'greedy' or 'beam_search'. Default is 'greedy' for performance reasons.
+        """
         features = self.video_processor.extract_features(video_path)
         if search_type == 'greedy':
             caption = self._greedy_search(features.reshape(-1, self.time_steps_encoder, self.num_encoder_tokens))
@@ -218,11 +246,6 @@ class VideoCaptionInference:
         cv2.destroyAllWindows()
 
 
-
-    
-
-
 if __name__ == '__main__':
     vc = VideoCaptionInference(config)
     vc.test()
-    # vc.predict_realtime('../data/realtime/video.mp4')

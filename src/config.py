@@ -1,3 +1,4 @@
+# Description: Configuration file for the model containing global variables.
 train_path = "../data/train"
 test_path = "../data/test"
 realtime_path = "../data/realtime"
@@ -14,4 +15,4 @@ max_probability = -1
 validation_split = 0.15
 min_length = 6 # words
 max_length = 10 # words
-search_type = "beam_search"
+search_type = "greedy"

@@ -1,8 +1,13 @@
 from inference import VideoCaptionInference
-import config
 import os
 
+import config
+
 def predict_realtime(directory):
+    """
+    Predict captions for videos in real-time.
+    :param directory: the directory containing the videos.
+    """
     inference = VideoCaptionInference(config)
     videos = os.listdir(directory)
     for i in range(len(videos)):

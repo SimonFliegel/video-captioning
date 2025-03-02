@@ -2,10 +2,20 @@ import os
 import joblib
 from tensorflow.keras.layers import Input, LSTM, Dense
 from tensorflow.keras.models import Model, load_model
+
 import config
 
 
 def create_models():
+    """
+    Creates the training, encoder, and decoder model.
+
+    The training model is a combination of the encoder and decoder.
+    The training model shares weights with the encoder and decoder models so that when it is adapted the encoder and decoder models are also adapted.
+    This means `model.fit` has to be called only on the training model and the changes are automatically applied to the encoder and decoder models.
+    Encoder and decoder models are then saved and can be used for inference.
+    """
+
     # Encoder
     encoder_inputs = Input(shape=(config.time_steps_encoder, config.num_encoder_tokens), name='encoder_inputs')
     encoder_lstm = LSTM(config.latent_dim, return_state=True, return_sequences=True, name='encoder_lstm')
@@ -26,24 +36,9 @@ def create_models():
     encoder_inference_model = Model(encoder_inputs, encoder_states)
 
     # Decoder Model (for inference)
-    decoder_inference_model = create_decoder_inference_model(decoder_dense, decoder_inputs, decoder_lstm)
+    decoder_inference_model = _create_decoder_inference_model(decoder_dense, decoder_inputs, decoder_lstm)
 
     return training_model, encoder_inference_model, decoder_inference_model
-
-
-def create_decoder_inference_model(decoder_dense, decoder_inputs, decoder_lstm):
-    """
-    Create the decoder inference model used for prediction.
-    """
-    decoder_state_input_h = Input(shape=(config.latent_dim,), name='decoder_state_input_h')
-    decoder_state_input_c = Input(shape=(config.latent_dim,), name='decoder_state_input_c')
-    decoder_states_inputs = [decoder_state_input_h, decoder_state_input_c]
-    # Reuse LSTM and Dense layers
-    decoder_outputs, state_h, state_c = decoder_lstm(decoder_inputs, initial_state=decoder_states_inputs)
-    decoder_states = [state_h, state_c]
-    decoder_outputs = decoder_dense(decoder_outputs)
-    decoder_model = Model([decoder_inputs] + decoder_states_inputs, [decoder_outputs] + decoder_states)
-    return decoder_model
 
 
 def load_inference_models():
@@ -61,7 +56,23 @@ def load_inference_models():
     decoder_inputs = Input(shape=(None, config.num_decoder_tokens))
     decoder_dense = Dense(config.num_decoder_tokens, activation='softmax')
     decoder_lstm = LSTM(config.latent_dim, return_sequences=True, return_state=True)
-    inf_decoder_model = create_decoder_inference_model(decoder_dense, decoder_inputs, decoder_lstm)
+    inf_decoder_model = _create_decoder_inference_model(decoder_dense, decoder_inputs, decoder_lstm)
     inf_decoder_model.load_weights(os.path.join(config.save_model_path, 'decoder_model_weights.h5'))
 
     return tokenizer, inf_encoder_model, inf_decoder_model
+
+
+def _create_decoder_inference_model(decoder_dense, decoder_inputs, decoder_lstm):
+    """
+    Helper function to create the decoder model for inference.
+    This is necessary because the decoder model is different during training and inference.
+    """
+    decoder_state_input_h = Input(shape=(config.latent_dim,), name='decoder_state_input_h')
+    decoder_state_input_c = Input(shape=(config.latent_dim,), name='decoder_state_input_c')
+    decoder_states_inputs = [decoder_state_input_h, decoder_state_input_c]
+    # Reuse LSTM and Dense layers
+    decoder_outputs, state_h, state_c = decoder_lstm(decoder_inputs, initial_state=decoder_states_inputs)
+    decoder_states = [state_h, state_c]
+    decoder_outputs = decoder_dense(decoder_outputs)
+    decoder_model = Model([decoder_inputs] + decoder_states_inputs, [decoder_outputs] + decoder_states)
+    return decoder_model
