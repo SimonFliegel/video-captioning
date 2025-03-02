@@ -32,3 +32,7 @@ pip install -r requirements.txt
 **Realtime**
 
 - Run the script [realtime.py](src/realtime.py) to interactively generate captions and display the video in real-time. For this the videos have to be located in the `data/realtime` directory.
+
+## Documentation
+
+For further information on the project please refer to the [documentation](docs/documentation.md).
