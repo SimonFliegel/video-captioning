@@ -36,3 +36,7 @@ pip install -r requirements.txt
 ## Documentation
 
 For further information on the project please refer to the [documentation](docs/documentation.md).
+
+## Report
+
+The report as part of the project can be found [here](docs/report.md).
