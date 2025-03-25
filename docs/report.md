@@ -1,8 +1,5 @@
 # Project Report: Video Captioning
 
-## Table of Contents
-
-
 ## Introduction
 
 Video captioning is the task of generating a textual description of a video. It is a challenging task that requires understanding of both the visual and the textual domain.
