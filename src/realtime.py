@@ -1,5 +1,6 @@
 from inference import VideoCaptionInference
 import os
+import mimetypes
 
 import config
 
@@ -12,6 +13,10 @@ def predict_realtime(directory):
     videos = os.listdir(directory)
     for i in range(len(videos)):
         video_path = os.path.join(directory, videos[i])
+        mime_type = mimetypes.guess_type(video_path)
+        if mime_type[0] is None or not mime_type[0].startswith('video'):
+            print("Skipping file: ", video_path)
+            continue
         print("Predicting for video: ", videos[i])
         inference.predict_realtime(video_path)
         if i < len(videos) - 1:

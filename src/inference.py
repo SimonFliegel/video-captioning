@@ -20,7 +20,7 @@ class VideoCaptionInference:
         self.test_path = conf.test_path
         self.train_path = conf.train_path
         
-        self.latent_dim = conf.latent_dim
+        self.latent_dim = conf.latent_space
         self.num_encoder_tokens = conf.num_encoder_tokens
         self.num_decoder_tokens = conf.num_decoder_tokens
         self.time_steps_encoder = conf.time_steps_encoder
@@ -231,7 +231,17 @@ class VideoCaptionInference:
                 cv2.moveWindow('Original', 0, 0)
             if ret_captioned:
                 image_show = cv2.resize(frame_captioned, (480, 300))
-                cv2.putText(image_show, caption, (100, 270), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2, cv2.LINE_4)
+                # Draw a black rectangle
+                (text_width, text_height), _ = cv2.getTextSize(caption, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)
+                rect_x1, rect_y1 = 100, 270 - text_height
+                rect_x2, rect_y2 = 100 + text_width, 270 + 10
+                cv2.rectangle(image_show, (rect_x1, rect_y1), (rect_x2, rect_y2), (0, 0, 0), -1)
+                # Apply Gaussian blur to the rectangle
+                sub_img = image_show[rect_y1:rect_y2, rect_x1:rect_x2]
+                blurred_rect = cv2.GaussianBlur(sub_img, (15, 15), 0)
+                image_show[rect_y1:rect_y2, rect_x1:rect_x2] = blurred_rect
+                # Draw white text
+                cv2.putText(image_show, caption, (100, 270), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2, cv2.LINE_4)
                 cv2.imshow('Captioned', image_show)
                 cv2.moveWindow('Captioned', 500, 0)
             else:

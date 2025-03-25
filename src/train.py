@@ -28,7 +28,7 @@ class VideoCaptioningTrainer:
         self.validation_split = conf.validation_split
         self.learning_rate = conf.learning_rate
         self.epochs = conf.epochs
-        self.latent_dim = conf.latent_dim
+        self.latent_dim = conf.latent_space
         self.num_encoder_tokens = conf.num_encoder_tokens
         self.num_decoder_tokens = conf.num_decoder_tokens
         self.time_steps_encoder = conf.time_steps_encoder
@@ -107,9 +107,9 @@ class VideoCaptioningTrainer:
                 # Encoder input
                 encoder_input_data.append(self.x_data[video_ids[idx]])
                 # Decoder input and target
-                y = to_categorical(train_sequences[idx], self.num_decoder_tokens)
-                decoder_input_data.append(y[:-1])
-                decoder_target_data.append(y[1:])
+                y = to_categorical(train_sequences[idx], self.num_decoder_tokens) # one-hot-encoding of padded caption
+                decoder_input_data.append(y[:-1]) # remove <eos>
+                decoder_target_data.append(y[1:])  # remove <bos>
     
                 batch_count += 1
                 if batch_count == self.batch_size:
@@ -165,7 +165,7 @@ class VideoCaptioningTrainer:
         """
         self.combined_model, self.encoder_model, self.decoder_model = create_models()
         training_data, validation_data = self._preprocess()
-        
+
         train = self._load_dataset(training_data)
         valid = self._load_dataset(validation_data)
 
