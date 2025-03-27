@@ -1,10 +1,56 @@
 # Project Report: Video Captioning
 
-## Introduction
+Name: Simon Fliegel \
+Matr.-Nr.: 53043 \
+Course: I030 - Applied Artificial Intelligence \
+Faculty: Mechanical Engineering / Robotics \
+Date: 2025-03-27
+
+<div style="margin-bottom: 4rem;">
+
+## Table of Contents
+
+1. [Introduction](#1-introduction)
+    1. [Problem](#11-problem)
+    2. [Motivation](#12-motivation)
+    3. [Simplifications](#13-simplifications)
+2. [Background](#2-background)
+    1. [Convoluted Neural Networks (CNNs)](#21-convoluted-neural-networks-cnns)
+        1. [Convolutional Layers](#211-convolutional-layers)
+        2. [Pooling Layers](#212-pooling-layers)
+        3. [Fully Connected Layers](#213-fully-connected-layers)
+        4. [VGG16](#214-vgg16)
+    2. [Long Short Term Memory (LSTM)](#22-long-short-term-memory-lstm)
+        1. [Recurrent Neural Networks (RNNs)](#221-recurrent-neural-networks-rnns)
+        2. [Vanishing Gradients](#222-vanishing-gradients)
+        3. [Solution: LSTM](#223-solution-lstm)
+            1. [Input gate](#input-gate)
+            2. [Forget gate](#forget-gate)
+            3. [Output gate](#output-gate)
+    3. [Encoder-Decoder Architecture](#23-encoder-decoder-architecture)
+        1. [Overview](#231-overview)
+        2. [Difference between Training and Inference](#232-difference-between-training-and-inference)
+3. [Methodology](#3-methodology)
+    1. [Preprocessing](#31-preprocessing)
+    2. [Training](#32-training)
+    3. [Inference](#33-inference)
+4. [Results](#4-results)
+5. [Conclusion](#5-conclusion)
+6. [References](#6-references)
+
+
+<div style="page-break-before: always;"></div>
+
+
+## 1. Introduction
+
+### 1.1. Problem
 
 Video captioning is the task of generating a textual description of a video. It is a challenging task that requires understanding of both the visual and the textual domain.
 The task is similar to image captioning, but with the added complexity of temporal information.
 The goal is to generate a coherent and informative description of the video content.
+
+### 1.2. Motivation
 
 When I searched for a topic I wanted to do something focused on the architectural aspect of deep learning.
 Due to recent popularity of LLMs I was interested in Transformers and their applications.
@@ -15,7 +61,7 @@ Technologically the combination of Computer Vision and NLP is also very interest
 The goal of creating a coherent and informative description of a video hasn't really changed during the project.
 However, I have made a few simplifications and assumptions to make the task more manageable.
 
-### Simplifications
+### 1.3. Simplifications
 - restricting the number of frames per video to 80 (taken in equal intervals over the video)
 - limiting the vocabulary to the 1500 most frequent words in the dataset
 - restricting the length of the output sequence to be between 6 and 10 words
@@ -24,17 +70,17 @@ These simplifications not only reduce the complexity of the problem but also mak
 This turned out to be crucial as the training process already took quite long to run on my hardware and made it difficult to experiment.
 
 
-## Used Technologies
+## 2. Background
 
 In this project I used three main concepts which will be explained in the following sections.
 All of them were combined to perform a pipeline for preprocessing, training and inference.
 
-### Convoluted Neural Networks (CNNs)
+### 2.1. Convoluted Neural Networks (CNNs)
 
 Convolutional Neural Networks are a type of neural network that is especially well suited for image processing tasks.
 A typical CNN consists of three main types of layers: convolutional layers, pooling layers and fully connected layers.
 
-#### Convolutional Layers
+#### 2.1.1. Convolutional Layers
 
 Convolutional layers are the core building blocks of CNNs.
 It works by sliding a filter (also called kernel) over the input image and computing the dot product of the filter and the input at each position.
@@ -44,7 +90,7 @@ The output of the convolutional layer is called feature map and represents the p
 
 ![Convolutional Layer](images/conv-layer.png)
 
-#### Pooling Layers
+#### 2.1.2. Pooling Layers
 
 Pooling layers are usually applied after a convolutional layer.
 They reduce the spatial dimensions of the input volume and therefore the number of parameters and computation in the network.
@@ -54,7 +100,7 @@ The operation is also applied by sliding a window over the input and taking the 
 
 ![Pooling Layer](images/pooling-layer.png)
 
-#### Fully Connected Layers
+#### 2.1.3. Fully Connected Layers
 
 Fully connected layers are used to connect the output of the convolutional layers to the output layer.
 This means they are at the end of the network and are responsible for making the final decision.
@@ -64,7 +110,7 @@ Often there is some dropout applied to the fully connected layers to prevent ove
 
 ![Fully Connected Layer](images/fc-layer.png)
 
-#### VGG16
+### 2.1.4. VGG16
 
 In this project the pretrained CNN [VGG16](https://arxiv.org/abs/1409.1556) is used to extract features from the video frames.
 It consists of 13 convolutional layers, 5 pooling layers and 3 fully connected layers.
@@ -77,11 +123,11 @@ I also think the quality of the features extracted by the majority of popular CN
 
 ![VGG16 Architecture](images/vgg16.png)
 
-### Long Short Term Memory (LSTM)
+### 2.2. Long Short Term Memory (LSTM)
 
 Long Short Term Memory networks are a type of recurrent neural network (RNN) that is capable of learning long-term dependencies.
 
-#### Recurrent Neural Networks (RNNs)
+#### 2.2.1. Recurrent Neural Networks (RNNs)
 
 Recurrent neural networks are a type of neural network that is designed to handle sequential data.
 They do this by maintaining a hidden state (h) that is updated at each time step and passed to the next time step. \
@@ -107,13 +153,13 @@ The advantages of RNNs over regular neural networks are that they can handle seq
 This makes them very flexible and suitable for a wide range of tasks.
 However, RNNs still have difficulties learning long-term dependencies due to a problem called *vanishing gradients*.
 
-#### Vanishing Gradients
+#### 2.2.2. Vanishing Gradients
 
 Vanishing gradients is the problem of greatly diverging gradient magnitudes between early and later layers encountered when training neural networks with backpropagation. (source: [Wikipedia](https://en.wikipedia.org/wiki/Vanishing_gradient_problem))
 In context of RNNs this causes the network to forget information from the early time steps as the gradients become very small and the weights are barely updated.
 To solve this problem, Long Short Term Memory networks were introduced.
 
-#### Solution: LSTM
+#### 2.2.3. Solution: LSTM
 
 LSTMs are a type of RNN that is capable of learning long-term dependencies.
 They solve the vanishing gradient problem by introducing a memory cell, often referred to as $ c_t $, that can store information over long periods of time.
@@ -154,7 +200,9 @@ $ h_t = o_t \cdot \tanh(C_t) $
 
 Resource: [Colah's Blog](https://colah.github.io/posts/2015-08-Understanding-LSTMs/)
 
-### Encoder-Decoder Architecture
+### 2.3. Encoder-Decoder Architecture
+
+#### 2.3.1. Overview
 
 The encoder-decoder architecture is an established approach for tackling sequence-to-sequence problems.
 The idea is to use two separate RNNs, one for encoding the input sequence and one for decoding the output sequence.
@@ -165,7 +213,7 @@ The decoder is fed with the output of the encoder and the sequence of previously
 In my case both encoder and decoder are implemented as LSTM layers.
 The architecture has proven to be successful in NLP tasks like machine translation or text summarization and is sometimes referred to as the predecessor of transformers which are the core building blocks of any large language model (LLM) nowadays.
 
-#### Difference between Training and Inference
+#### 2.3.2. Difference between Training and Inference
 
 The decoder-model for training and inference is slightly different.
 During training the docoder is always fed with the ground truth sequence.
@@ -178,9 +226,9 @@ The most naive and computationally efficient approach is to always take the toke
 
 ![Encoder-Decoder Architecture](images/encoder-decoder.png)
 
-## Methodology
+## 3. Methodology
 
-### Preprocessing
+### 3.1. Preprocessing
 
 I implemented the pipeline in the order of preprocessing, training and inference.
 This means that my first step was to preprocess the data and extracting the visual features from the video frames using VGG16.
@@ -188,7 +236,7 @@ As VGG16 has a fixed input size of 224x224 pixels the preprocessing step was str
 The second step was the selection of features I actually wanted to use. Here I made the first simplification by restricting the number of frames per video to 80 (following [this](https://arxiv.org/abs/1505.00487)) and choosing them in equal intervals over the video.
 Making the selection of those frames more sophisticated would probably lead to better results but would require some prior knowledge about the video content increasing the complexity.
 
-### Training
+### 3.2. Training
 
 The difficulties here were mainly setting up the encoder-decoder model and preparing the data for training.
 Setting up the model to even compile was a challenge as the input and output shapes had to be carefully chosen.
@@ -213,7 +261,7 @@ To create the batches three types of data are needed:
 During training, decoder inputs and targets are technically the same but shifted by one time step (ref. teacher forcing).
 Of course the output of the encoder is also needed as input for the decoder but this is handled internally by the model as the output layer of the encoder actually is the input layer for the decoder.
 
-### Inference
+### 3.3. Inference
 
 The challenge for this step mainly was setting up the inference model with the slightly different architecture.
 The architecture slightly changes as the decoder is now fed with its previous predictions at each time step.
@@ -229,7 +277,7 @@ This step was mainly using OpenCV api to display the video and the captions.
 
 ![flowchart](images/flowchart.png)
 
-## Results
+## 4. Results
 
 In practice evaluating the performance of a text generation model is challenging as it is hard to quantify the quality of the generated text.
 There are different metrics that can be used to measure the distance to the ground truth text.
@@ -244,7 +292,7 @@ There are several possible improvements that could be made to the model:
 - handle stop words differently: They are necessary to generate a coherent sentence, but they don't carry much information and due to their high frequency in the dataset, they are overrepresented in the vocabulary
 - increasing lower and upper bounds of the output sequence length to force the model to generate longer (potentially more informative) captions
 
-## Conclusion
+## 5. Conclusion
 
 While working on the project I learned a lot about the challenges of video captioning or sequence-to-sequence tasks in general.
 I also saw the benefits pretrained models to preprocess the data and reduce dimensionality of the input.
@@ -252,7 +300,7 @@ I would've liked to tweak the model further and trying out some of my improvemen
 However, due to high training time of the model, this was not feasible in the scope of this project.
 I will likely continue working on this project in the future probably equipped with better hardware and a deeper understanding of RNNs and their applications in NLP.
 
-## References
+## 6. References
 
 - [Sequence to Sequence -- Video to Text Paper](https://arxiv.org/abs/1505.00487)
 - [Video Description Corpus](https://www.microsoft.com/en-us/research/project/msvd-video-description-corpus/)
